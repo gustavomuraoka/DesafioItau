@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-CompraAutomatizada.Worker-fa057003-541c-4b96-a85d-6ad9d92505b9</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Quartz" Version="3.16.0" />
+    <PackageReference Include="Quartz.Extensions.Hosting" Version="3.16.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CompraAutomatizada.Application\CompraAutomatizada.Application.csproj" />
+    <ProjectReference Include="..\CompraAutomatizada.Infrastructure\CompraAutomatizada.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
