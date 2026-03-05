@@ -16,24 +16,24 @@ public class ClienteRepository : IClienteRepository
     public async Task<Cliente?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
         => await _context.Clientes
             .Include(c => c.Conta)
+                .ThenInclude(c => c.Posicoes)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
     public async Task<Cliente?> GetByCpfAsync(string cpf, CancellationToken cancellationToken = default)
         => await _context.Clientes
             .Include(c => c.Conta)
+                .ThenInclude(c => c.Posicoes)
             .FirstOrDefaultAsync(c => c.Cpf.Valor == cpf, cancellationToken);
 
     public async Task<IEnumerable<Cliente>> GetAtivosAsync(CancellationToken cancellationToken = default)
         => await _context.Clientes
             .Include(c => c.Conta)
+                .ThenInclude(c => c.Posicoes)
             .Where(c => c.Ativo)
             .ToListAsync(cancellationToken);
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
+        => await _context.SaveChangesAsync(cancellationToken);
 
     public async Task<int> CountAtivosAsync(CancellationToken cancellationToken = default)
         => await _context.Clientes.CountAsync(c => c.Ativo, cancellationToken);

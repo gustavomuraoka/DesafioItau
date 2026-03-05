@@ -40,7 +40,6 @@ public class RebalanceamentoService : IRebalanceamentoService
         var tickersAntigos = cestaAntiga.Itens.Select(i => i.Ticker).ToHashSet();
         var tickersNovos = novaCesta.Itens.Select(i => i.Ticker).ToHashSet();
         var tickersRemovidos = tickersAntigos.Except(tickersNovos).ToList();
-        var tickersAdicionados = tickersNovos.Except(tickersAntigos).ToList();
 
         var todosTickers = tickersAntigos.Union(tickersNovos).ToList();
         var cotacoes = await _cotacaoService.ObterCotacoesFechamentoAsync(todosTickers, cancellationToken);
@@ -49,38 +48,94 @@ public class RebalanceamentoService : IRebalanceamentoService
         {
             try
             {
-                // 1. Vender ativos removidos da cesta
+                var clienteComConta = await _clienteRepository.GetByIdAsync(cliente.Id, cancellationToken);
+                var posicoes = clienteComConta?.Conta?.Posicoes.ToList() ?? new();
+
+                decimal valorLiberado = 0m;
+
                 foreach (var ticker in tickersRemovidos)
                 {
                     var cotacao = cotacoes.GetValueOrDefault(ticker, 0m);
                     if (cotacao <= 0) continue;
 
-                    var conta = await _clienteRepository.GetByIdAsync(cliente.Id, cancellationToken);
-                    var posicao = conta?.Conta?.Posicoes.FirstOrDefault(p => p.Ticker == ticker);
+                    var posicao = posicoes.FirstOrDefault(p => p.Ticker == ticker);
                     if (posicao is null || posicao.Quantidade <= 0) continue;
 
                     var precoMedio = await _custodiaService.VenderDaFilhoteAsync(
                         cliente.Id, ticker, posicao.Quantidade, cotacao, cancellationToken);
 
+                    valorLiberado += Math.Round(posicao.Quantidade * cotacao, 2);
+
                     await _irService.ProcessarIRVendaAsync(
                         cliente.Id, ticker, posicao.Quantidade, cotacao, precoMedio, cancellationToken);
+
+                    _logger.LogInformation("Cliente {ClienteId}: vendeu {Qtd} {Ticker} @ {Cotacao}. Liberado: {Valor}",
+                        cliente.Id, posicao.Quantidade, ticker, cotacao, valorLiberado);
                 }
 
-                // 2. Comprar ativos adicionados à cesta
-                foreach (var ticker in tickersAdicionados)
+                decimal valorMantido = 0m;
+                foreach (var ticker in tickersNovos.Intersect(tickersAntigos))
                 {
                     var cotacao = cotacoes.GetValueOrDefault(ticker, 0m);
                     if (cotacao <= 0) continue;
 
-                    var itemNovoCesta = novaCesta.Itens.First(i => i.Ticker == ticker);
-                    var valorMensalCliente = cliente.ValorMensal;
-                    var valorAlocado = Math.Round(valorMensalCliente * (itemNovoCesta.Percentual.Valor / 100m), 2);
-                    var qtd = (int)Math.Floor(valorAlocado / cotacao);
+                    var posicao = posicoes.FirstOrDefault(p => p.Ticker == ticker);
+                    if (posicao is null) continue;
 
-                    if (qtd <= 0) continue;
+                    valorMantido += Math.Round(posicao.Quantidade * cotacao, 2);
+                }
 
-                    await _custodiaService.DistribuirParaFilhoteAsync(cliente.Id, ticker, qtd, cotacao, cancellationToken);
-                    await _irService.ProcessarDedoDuroAsync(cliente.Id, ticker, qtd, cotacao, cancellationToken);
+                var valorTotal = valorLiberado + valorMantido;
+
+                if (valorTotal <= 0)
+                {
+                    _logger.LogWarning("Cliente {ClienteId}: valor total zerado, pulando.", cliente.Id);
+                    continue;
+                }
+
+                foreach (var item in novaCesta.Itens)
+                {
+                    var ticker = item.Ticker;
+                    var cotacao = cotacoes.GetValueOrDefault(ticker, 0m);
+                    if (cotacao <= 0) continue;
+
+                    var percentual = item.Percentual.Valor / 100m;
+                    var valorAlvo = Math.Round(valorTotal * percentual, 2);
+
+                    var posicaoAtual = posicoes.FirstOrDefault(p => p.Ticker == ticker);
+                    var qtdAtual = posicaoAtual?.Quantidade ?? 0;
+                    var valorAtual = Math.Round(qtdAtual * cotacao, 2);
+
+                    var valorDelta = valorAlvo - valorAtual;
+
+                    if (valorDelta >= cotacao)
+                    {
+                        var qtdComprar = (int)Math.Floor(valorDelta / cotacao);
+                        if (qtdComprar <= 0) continue;
+
+                        await _custodiaService.DistribuirParaFilhoteAsync(
+                            cliente.Id, ticker, qtdComprar, cotacao, cancellationToken);
+
+                        await _irService.ProcessarDedoDuroAsync(
+                            cliente.Id, ticker, qtdComprar, cotacao, cancellationToken);
+
+                        _logger.LogInformation("Cliente {ClienteId}: comprou {Qtd} {Ticker} @ {Cotacao}.",
+                            cliente.Id, qtdComprar, ticker, cotacao);
+                    }
+                    else if (valorDelta <= -cotacao)
+                    {
+                        var qtdVender = (int)Math.Floor(Math.Abs(valorDelta) / cotacao);
+                        if (qtdVender <= 0 || qtdVender > qtdAtual) continue;
+
+                        var precoMedio = await _custodiaService.VenderDaFilhoteAsync(
+                            cliente.Id, ticker, qtdVender, cotacao, cancellationToken);
+
+                        await _irService.ProcessarIRVendaAsync(
+                            cliente.Id, ticker, qtdVender, cotacao, precoMedio, cancellationToken);
+
+                        _logger.LogInformation("Cliente {ClienteId}: vendeu excesso {Qtd} {Ticker} @ {Cotacao}.",
+                            cliente.Id, qtdVender, ticker, cotacao);
+                    }
                 }
             }
             catch (Exception ex)
@@ -94,7 +149,6 @@ public class RebalanceamentoService : IRebalanceamentoService
 
     public async Task RebalancearPorDesvioAsync(CancellationToken cancellationToken = default)
     {
-        // Implementação futura — verifica desvio de proporção e reequilibra
         _logger.LogInformation("Rebalanceamento por desvio ainda não implementado.");
         await Task.CompletedTask;
     }
