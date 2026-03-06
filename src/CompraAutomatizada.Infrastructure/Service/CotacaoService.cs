@@ -26,12 +26,15 @@ public class CotacaoService : ICotacaoService
     public async Task<Cotacao?> ObterUltimaByTickerAsync(string ticker, CancellationToken cancellationToken = default)
         => await _cotacaoRepository.GetUltimaByTickerAsync(ticker, cancellationToken);
 
-    public async Task<IReadOnlyDictionary<string, decimal>> ObterCotacoesFechamentoAsync(
-        IEnumerable<string> tickers, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyDictionary<string, decimal>> ObterCotacoesFechamentoAsync(IEnumerable<string> tickers, DateOnly? dataReferencia = null, CancellationToken cancellationToken = default)
     {
-        var cotacoes = await _cotacaoRepository.GetUltimasByTickersAsync(tickers, cancellationToken);
+        var cotacoes = dataReferencia.HasValue
+            ? await _cotacaoRepository.GetUltimasByTickersAteDataAsync(tickers, dataReferencia.Value, cancellationToken)
+            : await _cotacaoRepository.GetUltimasByTickersAsync(tickers, cancellationToken);
+
         return cotacoes.ToDictionary(c => c.Ticker, c => c.PrecoFechamento);
     }
+
 
     public async Task ImportarCotahistAsync(string caminhoArquivo, CancellationToken cancellationToken = default)
     {

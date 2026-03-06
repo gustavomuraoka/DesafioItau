@@ -17,6 +17,7 @@ public class CompraService : ICompraService
     private readonly ICotacaoService _cotacaoService;
     private readonly ICustodiaService _custodiaService;
     private readonly IIRService _irService;
+    private readonly IRebalanceamentoService _rebalanceamentoService;
     private readonly ILogger<CompraService> _logger;
 
     public CompraService(
@@ -27,6 +28,7 @@ public class CompraService : ICompraService
         ICotacaoService cotacaoService,
         ICustodiaService custodiaService,
         IIRService irService,
+        IRebalanceamentoService rebalanceamentoService,
         ILogger<CompraService> logger)
     {
         _clienteRepository = clienteRepository;
@@ -36,6 +38,7 @@ public class CompraService : ICompraService
         _cotacaoService = cotacaoService;
         _custodiaService = custodiaService;
         _irService = irService;
+        _rebalanceamentoService = rebalanceamentoService;
         _logger = logger;
     }
 
@@ -62,7 +65,7 @@ public class CompraService : ICompraService
         }
 
         var tickers = cesta.Itens.Select(i => i.Ticker).ToList();
-        var cotacoes = await _cotacaoService.ObterCotacoesFechamentoAsync(tickers, cancellationToken);
+        var cotacoes = await _cotacaoService.ObterCotacoesFechamentoAsync(tickers, dataReferencia, cancellationToken);
 
         var ordensCompraDto = new List<OrdemCompraDto>();
         var distribuicoesDto = new List<DistribuicaoClienteDto>();
@@ -97,10 +100,19 @@ public class CompraService : ICompraService
                 await _ordemRepository.AddAsync(ordem, cancellationToken);
             await _ordemRepository.SaveChangesAsync(cancellationToken);
 
+            var lotes = (qtdComprar / 100) * 100;
+            var fracionario = qtdComprar % 100;
+
+            var detalhes = new List<DetalheOrdemDto>();
+            if (lotes > 0)
+                detalhes.Add(new DetalheOrdemDto("LOTE", ticker, lotes));
+            if (fracionario > 0)
+                detalhes.Add(new DetalheOrdemDto("FRACIONARIO", $"{ticker}F", fracionario));
+
             ordensCompraDto.Add(new OrdemCompraDto(
                 ticker,
                 qtdComprar,
-                new[] { new DetalheOrdemDto("FRACIONARIO", $"{ticker}F", qtdComprar) },
+                detalhes,
                 cotacao,
                 Math.Round(qtdComprar * cotacao, 2)
             ));
@@ -142,6 +154,13 @@ public class CompraService : ICompraService
 
             await _ordemRepository.SaveChangesAsync(cancellationToken);
         }
+
+        _logger.LogInformation("Iniciando rebalanceamento por desvio pós-compra.");
+        await _rebalanceamentoService.RebalancearPorDesvioAsync(
+            clientes.Select(c => c.Id),
+            cesta,
+            cotacoes,
+            cancellationToken);
 
         _logger.LogInformation("Compra concluída. Clientes: {N}, Total: {Total}", clientes.Count, totalConsolidado);
 

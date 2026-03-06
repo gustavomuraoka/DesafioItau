@@ -39,6 +39,21 @@ public class CotacaoRepository : ICotacaoRepository
         return tickers.ToHashSet();
     }
 
+    public async Task<IEnumerable<Cotacao>> GetUltimasByTickersAteDataAsync(
+        IEnumerable<string> tickers,
+        DateOnly dataReferencia,
+        CancellationToken cancellationToken = default)
+    {
+        var tickersList = tickers.Select(t => t.ToUpper()).ToList();
+
+        return await _context.Cotacoes
+            .Where(c => tickersList.Contains(c.Ticker) && c.DataPregao <= dataReferencia)
+            .GroupBy(c => c.Ticker)
+            .Select(g => g.OrderByDescending(c => c.DataPregao).First())
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<bool> ExisteCotacaoParaDataAsync(string ticker, DateOnly data, CancellationToken cancellationToken = default)
         => await _context.Cotacoes
             .AnyAsync(c => c.Ticker == ticker.ToUpper() && c.DataPregao == data, cancellationToken);
