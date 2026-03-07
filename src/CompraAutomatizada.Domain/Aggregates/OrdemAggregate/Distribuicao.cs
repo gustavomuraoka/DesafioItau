@@ -17,7 +17,7 @@ public class Distribuicao : Entity
 
     protected Distribuicao() { }
 
-    private Distribuicao(long ordemCompraId, long custodiaFilhoteId, long clienteId, string ticker, int quantidade, decimal precoUnitario)
+    private Distribuicao(long ordemCompraId, long custodiaFilhoteId, long clienteId, string ticker, int quantidade, decimal precoUnitario, DateTime dataDistribuicao)
     {
         OrdemCompraId = ordemCompraId;
         CustodiaFilhoteId = custodiaFilhoteId;
@@ -26,19 +26,19 @@ public class Distribuicao : Entity
         Quantidade = quantidade;
         PrecoUnitario = precoUnitario;
         ValorIrDedoDuro = CalcularIrDedoDuro(quantidade * precoUnitario);
-        DataDistribuicao = DateTime.UtcNow;
+        DataDistribuicao = dataDistribuicao;
     }
 
-    internal static Distribuicao Criar(long ordemCompraId, long custodiaFilhoteId, long clienteId, string ticker, int quantidade, decimal precoUnitario)
+    internal static Distribuicao Criar(long ordemCompraId, long custodiaFilhoteId, long clienteId, string ticker, int quantidade, decimal precoUnitario, DateTime dataDistribuicao)
     {
-        if (ordemCompraId <= 0) throw new DomainException("OrdemCompraId inválido.");
-        if (custodiaFilhoteId <= 0) throw new DomainException("CustodiaFilhoteId inválido.");
-        if (clienteId <= 0) throw new DomainException("ClienteId inválido.");
-        if (string.IsNullOrWhiteSpace(ticker)) throw new DomainException("Ticker é obrigatório.");
+        if (ordemCompraId <= 0) throw new DomainException("OrdemCompraId invÃ¡lido.");
+        if (custodiaFilhoteId <= 0) throw new DomainException("CustodiaFilhoteId invÃ¡lido.");
+        if (clienteId <= 0) throw new DomainException("ClienteId invÃ¡lido.");
+        if (string.IsNullOrWhiteSpace(ticker)) throw new DomainException("Ticker Ã© obrigatÃ³rio.");
         if (quantidade <= 0) throw new DomainException("Quantidade deve ser maior que zero.");
-        if (precoUnitario <= 0) throw new DomainException("Preço unitário deve ser maior que zero.");
+        if (precoUnitario <= 0) throw new DomainException("PreÃ§o unitÃ¡rio deve ser maior que zero.");
 
-        return new Distribuicao(ordemCompraId, custodiaFilhoteId, clienteId, ticker, quantidade, precoUnitario);
+        return new Distribuicao(ordemCompraId, custodiaFilhoteId, clienteId, ticker, quantidade, precoUnitario, dataDistribuicao);
     }
 
     private static decimal CalcularIrDedoDuro(decimal valorTotal)

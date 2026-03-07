@@ -3,17 +3,18 @@ using System;
 using CompraAutomatizada.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace CompraAutomatizada.Infrastructure.Persistence.Migrations
+namespace CompraAutomatizada.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260304230637_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260307223825_InitialState")]
+    partial class InitialState
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -265,6 +266,9 @@ namespace CompraAutomatizada.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint");
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClienteId")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("CustodiaFilhoteId")
                         .HasColumnType("bigint");

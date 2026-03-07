@@ -38,9 +38,9 @@ public class ContaGrafica : Entity
     public static ContaGrafica CriarFilhote(long clienteId, string numeroConta)
     {
         if (clienteId <= 0)
-            throw new DomainException("ClienteId inv·lido.");
+            throw new DomainException("ClienteId inv√°lido.");
         if (string.IsNullOrWhiteSpace(numeroConta))
-            throw new DomainException("N˙mero de conta È obrigatÛrio.");
+            throw new DomainException("N√∫mero de conta √© obrigat√≥rio.");
 
         return new ContaGrafica(clienteId, numeroConta, TipoConta.Filhote);
     }
@@ -48,7 +48,7 @@ public class ContaGrafica : Entity
     public void Desativar()
     {
         if (!Ativo)
-            throw new DomainException("Conta j· est· inativa.");
+            throw new DomainException("Conta j√° est√° inativa.");
         Ativo = false;
     }
 
@@ -65,7 +65,7 @@ public class ContaGrafica : Entity
     public void RemoverPosicao(string ticker, int quantidade)
     {
         var posicao = _posicoes.FirstOrDefault(c => c.Ticker == ticker.ToUpper())
-            ?? throw new DomainException($"Ativo {ticker} n„o encontrado na custÛdia.");
+            ?? throw new DomainException($"Ativo {ticker} n√£o encontrado na cust√≥dia.");
 
         posicao.RemoverQuantidade(quantidade);
 
@@ -79,7 +79,7 @@ public class ContaGrafica : Entity
             throw new DomainException("Apenas a conta master pode distribuir ativos.");
 
         var posicao = _posicoes.FirstOrDefault(c => c.Ticker == ticker.ToUpper())
-            ?? throw new DomainException($"Ativo {ticker} n„o encontrado na custÛdia master.");
+            ?? throw new DomainException($"Ativo {ticker} n√£o encontrado na cust√≥dia master.");
 
         posicao.DistribuirParaFilhote(quantidade);
 

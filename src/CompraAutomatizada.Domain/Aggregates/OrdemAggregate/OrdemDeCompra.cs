@@ -32,17 +32,17 @@ public class OrdemDeCompra : Entity
     public static OrdemDeCompra Criar(long contaMasterId, string ticker, int quantidade, decimal precoUnitario, TipoMercado tipoMercado)
     {
         if (contaMasterId <= 0)
-            throw new DomainException("ContaMasterId inválido.");
+            throw new DomainException("ContaMasterId invï¿½lido.");
         if (string.IsNullOrWhiteSpace(ticker))
-            throw new DomainException("Ticker é obrigatório.");
+            throw new DomainException("Ticker ï¿½ obrigatï¿½rio.");
         if (quantidade <= 0)
             throw new DomainException("Quantidade deve ser maior que zero.");
         if (precoUnitario <= 0)
-            throw new DomainException("Preço unitário deve ser maior que zero.");
+            throw new DomainException("Preï¿½o unitï¿½rio deve ser maior que zero.");
         if (tipoMercado == TipoMercado.Lote && quantidade % 100 != 0)
-            throw new DomainException("Ordens de lote padrão devem ter quantidade múltipla de 100.");
+            throw new DomainException("Ordens de lote padrï¿½o devem ter quantidade mï¿½ltipla de 100.");
         if (tipoMercado == TipoMercado.Fracionario && quantidade >= 100)
-            throw new DomainException("Ordens fracionárias devem ter quantidade menor que 100.");
+            throw new DomainException("Ordens fracionï¿½rias devem ter quantidade menor que 100.");
 
         return new OrdemDeCompra(contaMasterId, ticker, quantidade, precoUnitario, tipoMercado);
     }
@@ -66,11 +66,12 @@ public class OrdemDeCompra : Entity
         return ordens;
     }
 
-    public Distribuicao AdicionarDistribuicao(long custodiaFilhoteId, long clienteId, int quantidade, decimal precoUnitario)
+    public Distribuicao AdicionarDistribuicao(long custodiaFilhoteId, long clienteId, int quantidade, decimal precoUnitario, DateTime dataDistribuicao)
     {
-        var distribuicao = Distribuicao.Criar(Id, custodiaFilhoteId, clienteId, Ticker, quantidade, precoUnitario);
+        var distribuicao = Distribuicao.Criar(Id, custodiaFilhoteId, clienteId, Ticker, quantidade, precoUnitario, dataDistribuicao);
         _distribuicoes.Add(distribuicao);
         return distribuicao;
     }
+
 
 }

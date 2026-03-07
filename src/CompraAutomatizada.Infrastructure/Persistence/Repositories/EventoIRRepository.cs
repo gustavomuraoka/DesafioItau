@@ -19,12 +19,18 @@ public class EventoIRRepository : IEventoIRRepository
             .ToListAsync(cancellationToken);
 
     public async Task<decimal> GetTotalVendasNoMesAsync(long clienteId, int ano, int mes, CancellationToken cancellationToken = default)
-        => await _context.EventosIR
+    {
+        var valores = await _context.EventosIR
             .Where(e => e.ClienteId == clienteId
                 && e.DataEvento.Year == ano
                 && e.DataEvento.Month == mes
                 && e.Tipo == Domain.Enums.TipoEventoIR.IrVenda)
-            .SumAsync(e => e.ValorOperacao, cancellationToken);
+            .Select(e => e.ValorOperacao)
+            .ToListAsync(cancellationToken);
+
+        return valores.Sum();
+    }
+
 
     public async Task AddAsync(EventoIR evento, CancellationToken cancellationToken = default)
         => await _context.EventosIR.AddAsync(evento, cancellationToken);

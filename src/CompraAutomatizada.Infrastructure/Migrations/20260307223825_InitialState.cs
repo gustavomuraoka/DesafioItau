@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace CompraAutomatizada.Infrastructure.Persistence.Migrations
+namespace CompraAutomatizada.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialState : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -201,6 +202,7 @@ namespace CompraAutomatizada.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     OrdemCompraId = table.Column<long>(type: "bigint", nullable: false),
                     CustodiaFilhoteId = table.Column<long>(type: "bigint", nullable: false),
+                    ClienteId = table.Column<long>(type: "bigint", nullable: false),
                     Ticker = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Quantidade = table.Column<int>(type: "int", nullable: false),

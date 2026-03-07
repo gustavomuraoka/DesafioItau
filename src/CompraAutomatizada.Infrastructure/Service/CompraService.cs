@@ -80,7 +80,7 @@ public class CompraService : ICompraService
 
             if (cotacao <= 0)
             {
-                _logger.LogWarning("Cotação não encontrada para {Ticker}. Pulando.", ticker);
+                _logger.LogWarning("CotaÃ§Ã£o nÃ£o encontrada para {Ticker}. Pulando.", ticker);
                 continue;
             }
 
@@ -131,7 +131,7 @@ public class CompraService : ICompraService
                 await _custodiaService.DistribuirParaFilhoteAsync(cliente.Id, ticker, qtdCliente, cotacao, cancellationToken);
                 await _irService.ProcessarDedoDuroAsync(cliente.Id, ticker, qtdCliente, cotacao, cancellationToken);
 
-                ordemPrincipal.AdicionarDistribuicao(contaFilhoteId, cliente.Id, qtdCliente, cotacao);
+                ordemPrincipal.AdicionarDistribuicao(contaFilhoteId, cliente.Id, qtdCliente, cotacao, dataReferencia.ToDateTime(TimeOnly.MinValue));
 
                 qtdTotalDistribuida += qtdCliente;
                 totalEventosIR++;
@@ -155,14 +155,14 @@ public class CompraService : ICompraService
             await _ordemRepository.SaveChangesAsync(cancellationToken);
         }
 
-        _logger.LogInformation("Iniciando rebalanceamento por desvio pós-compra.");
+        _logger.LogInformation("Iniciando rebalanceamento por desvio pÃ³s-compra.");
         await _rebalanceamentoService.RebalancearPorDesvioAsync(
             clientes.Select(c => c.Id),
             cesta,
             cotacoes,
             cancellationToken);
 
-        _logger.LogInformation("Compra concluída. Clientes: {N}, Total: {Total}", clientes.Count, totalConsolidado);
+        _logger.LogInformation("Compra concluÃ­da. Clientes: {N}, Total: {Total}", clientes.Count, totalConsolidado);
 
         return new ExecucaoCompraDto(
             DateTime.UtcNow,

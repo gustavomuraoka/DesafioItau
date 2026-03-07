@@ -27,10 +27,10 @@ public class ConsultarRentabilidadeHandler : IRequestHandler<ConsultarRentabilid
     public async Task<RentabilidadeDto> Handle(ConsultarRentabilidadeQuery request, CancellationToken cancellationToken)
     {
         var cliente = await _clienteRepository.GetByIdAsync(request.ClienteId, cancellationToken)
-            ?? throw new DomainException("Cliente não encontrado.");
+            ?? throw new DomainException("Cliente nÃ£o encontrado.");
 
         var conta = await _contaGraficaRepository.GetByClienteIdAsync(request.ClienteId, cancellationToken)
-            ?? throw new DomainException("Conta gráfica não encontrada.");
+            ?? throw new DomainException("Conta grÃ¡fica nÃ£o encontrada.");
 
         var tickers = conta.Posicoes.Select(p => p.Ticker).ToList();
         var cotacoes = await _cotacaoRepository.GetUltimasByTickersAsync(tickers, cancellationToken);
