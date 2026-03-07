@@ -37,7 +37,9 @@ export function RentabilidadeCard({ clienteId }: { clienteId: number }) {
                     <tbody>
                         {data.historicoAportes.map((a, i) => (
                             <tr key={i} className="border-b last:border-0">
-                                <td className="py-2">{new Date(a.data).toLocaleDateString("pt-BR")}</td>
+                                <td className="py-2">
+                                    {new Date(a.data + "T00:00:00").toLocaleDateString("pt-BR")}
+                                </td>
                                 <td className="py-2 text-center text-gray-500">{a.parcela}</td>
                                 <td className="py-2 text-right">
                                     R$ {a.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
@@ -62,7 +64,9 @@ export function RentabilidadeCard({ clienteId }: { clienteId: number }) {
                     <tbody>
                         {data.evolucaoCarteira.map((e, i) => (
                             <tr key={i} className="border-b last:border-0">
-                                <td className="py-2">{new Date(e.data).toLocaleDateString("pt-BR")}</td>
+                                <td className="py-2">
+                                    {new Date(e.data + "T00:00:00").toLocaleDateString("pt-BR")}
+                                </td>
                                 <td className="py-2 text-right">
                                     R$ {e.valorInvestido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                                 </td>
