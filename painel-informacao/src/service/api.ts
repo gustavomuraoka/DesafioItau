@@ -16,7 +16,7 @@ import {
 
 // Aponta para o dotnet run local em dev, e para o container em produção
 const BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5195";
 
 async function request<T>(
     path: string,

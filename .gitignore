@@ -365,3 +365,9 @@ FodyWeavers.xsd
 # Coverage
 coveragereport/
 tests/**/TestResults/
+
+# Extra
+node_modules
+.next
+.git
+*.md
